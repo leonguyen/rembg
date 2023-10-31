@@ -49,7 +49,7 @@ def alpha_matting_cutout(
     The function returns a PIL image representing the cutout of the foreground object
     from the original image.
     """
-    if img.mode == "RGBA" or img.mode == "CMYK":
+    if img.mode in ["RGBA", "CMYK"]:
         img = img.convert("RGB")
 
     img = np.asarray(img)
@@ -96,8 +96,7 @@ def naive_cutout(img: PILImage, mask: PILImage) -> PILImage:
     image using the mask.
     """
     empty = Image.new("RGBA", (img.size), 0)
-    cutout = Image.composite(img, empty, mask)
-    return cutout
+    return Image.composite(img, empty, mask)
 
 
 def putalpha_cutout(img: PILImage, mask: PILImage) -> PILImage:
@@ -244,7 +243,7 @@ def remove(
         return_type = ReturnType.NDARRAY
         img = Image.fromarray(data)
     else:
-        raise ValueError("Input type {} is not supported.".format(type(data)))
+        raise ValueError(f"Input type {type(data)} is not supported.")
 
     putalpha = kwargs.pop("putalpha", False)
 
@@ -274,20 +273,13 @@ def remove(
                     alpha_matting_erode_size,
                 )
             except ValueError:
-                if putalpha:
-                    cutout = putalpha_cutout(img, mask)
-                else:
-                    cutout = naive_cutout(img, mask)
+                cutout = putalpha_cutout(img, mask) if putalpha else naive_cutout(img, mask)
         else:
-            if putalpha:
-                cutout = putalpha_cutout(img, mask)
-            else:
-                cutout = naive_cutout(img, mask)
-
+            cutout = putalpha_cutout(img, mask) if putalpha else naive_cutout(img, mask)
         cutouts.append(cutout)
 
     cutout = img
-    if len(cutouts) > 0:
+    if cutouts:
         cutout = get_concat_v_multi(cutouts)
 
     if bgcolor is not None and not only_mask:

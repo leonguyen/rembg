@@ -44,11 +44,13 @@ def get_input_points(prompt):
             points.append(mark["data"])
             labels.append(mark["label"])
         elif mark["type"] == "rectangle":
-            points.append([mark["data"][0], mark["data"][1]])
-            points.append([mark["data"][2], mark["data"][3]])
-            labels.append(2)
-            labels.append(3)
-
+            points.extend(
+                (
+                    [mark["data"][0], mark["data"][1]],
+                    [mark["data"][2], mark["data"][3]],
+                )
+            )
+            labels.extend((2, 3))
     points, labels = np.array(points), np.array(labels)
     return points, labels
 
